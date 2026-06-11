@@ -17,35 +17,85 @@ window.addEventListener('load', () => {
 function createPetals() {
   const canvas = document.getElementById('petals-canvas');
   if (!canvas) return;
-  const colors = [
-    '#f9c8d4','#f5aabf','#fde8e0','#f8d5c2','#fff0f3',
-    '#fce4ec','#f8bbd0','#ffd7df','#ffe4cc','#fffbe0',
-    '#ffffff','#faeef0','#e8f0e8','#d4e8d4'
+
+  const palette = [
+    ['#fde8ef','#f48fb1'],
+    ['#fce4ec','#e91e63'],
+    ['#fff9fb','#d4a8b0'],
+    ['#fff8f0','#e8b4a8'],
+    ['#ffeef2','#c48b94'],
+    ['#fffbf0','#f0d080'],
+    ['#ffffff','#f8bbd0'],
+    ['#fef0f4','#e08090'],
   ];
+
+  const shapes = [
+    'M20,2 C29,2 38,14 38,32 C38,52 28,66 20,68 C12,66 2,52 2,32 C2,14 11,2 20,2 Z',
+    'M15,0 C21,3 26,18 25,42 C24,60 19,72 15,74 C11,72 6,60 5,42 C4,18 9,3 15,0 Z',
+    'M22,4 C33,2 42,16 40,36 C38,54 30,66 22,68 C14,66 6,54 4,36 C2,16 11,2 22,4 Z',
+    'M18,2 C26,0 34,14 33,34 C32,52 25,66 18,70 C11,66 4,52 4,34 C4,16 10,0 18,2 Z',
+  ];
+
+  const NS = 'http://www.w3.org/2000/svg';
+
   for (let i = 0; i < 28; i++) {
-    const p = document.createElement('div');
-    p.className = 'petal';
-    const sz  = 8 + Math.random() * 20;
-    const col = colors[Math.floor(Math.random() * colors.length)];
-    const shapes = ['50% 0','50% 50% 0 50%','50% 0 50% 0','30% 70% 70% 30%'];
+    const [, dark] = palette[Math.floor(Math.random() * palette.length)];
     const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    const sz    = 14 + Math.random() * 22;
     const drift = (Math.random() - 0.5) * 280;
     const rot   = Math.random() * 360;
     const dur   = 9 + Math.random() * 14;
     const del   = Math.random() * 20;
-    p.style.cssText = [
-      `left:${Math.random()*100}%`,
-      `width:${sz}px`,
-      `height:${sz * (1.4 + Math.random() * 0.6)}px`,
-      `background:${col}`,
-      `border-radius:${shape}`,
+    const gradId = `pg${i}`;
+
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 42 76');
+    svg.setAttribute('width', sz);
+    svg.setAttribute('height', sz * 1.81);
+    svg.style.cssText = [
+      `position:absolute`,
+      `left:${Math.random() * 100}%`,
+      `top:-80px`,
       `--drift:${drift}px`,
       `--rot:${rot}deg`,
       `animation:petalFall ${dur}s ${del}s linear infinite`,
-      `opacity:${0.5 + Math.random() * 0.5}`,
-      `filter:blur(${Math.random() * 0.6}px)`,
+      `opacity:${0.6 + Math.random() * 0.4}`,
+      `pointer-events:none`,
     ].join(';');
-    canvas.appendChild(p);
+
+    const defs = document.createElementNS(NS, 'defs');
+    const grad = document.createElementNS(NS, 'radialGradient');
+    grad.setAttribute('id', gradId);
+    grad.setAttribute('cx', '42%');
+    grad.setAttribute('cy', '28%');
+    grad.setAttribute('r', '68%');
+    const s1 = document.createElementNS(NS, 'stop');
+    s1.setAttribute('offset', '0%');
+    s1.setAttribute('stop-color', '#ffffff');
+    s1.setAttribute('stop-opacity', '0.9');
+    const s2 = document.createElementNS(NS, 'stop');
+    s2.setAttribute('offset', '100%');
+    s2.setAttribute('stop-color', dark);
+    s2.setAttribute('stop-opacity', '0.85');
+    grad.appendChild(s1);
+    grad.appendChild(s2);
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    const petalPath = document.createElementNS(NS, 'path');
+    petalPath.setAttribute('d', shape);
+    petalPath.setAttribute('fill', `url(#${gradId})`);
+    svg.appendChild(petalPath);
+
+    const vein = document.createElementNS(NS, 'path');
+    vein.setAttribute('d', 'M20,4 Q21,36 20,66');
+    vein.setAttribute('stroke', dark);
+    vein.setAttribute('stroke-opacity', '0.25');
+    vein.setAttribute('stroke-width', '0.7');
+    vein.setAttribute('fill', 'none');
+    svg.appendChild(vein);
+
+    canvas.appendChild(svg);
   }
 }
 
